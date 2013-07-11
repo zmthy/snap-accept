@@ -1,0 +1,29 @@
+name:          snap-accept
+version:       0.0.1
+license:       MIT
+license-file:  LICENSE
+author:        Timothy Jones
+maintainer:    Timothy Jones <git@zimothy.com>
+stability:     experimental
+homepage:      http://github.com/zimothy/snap-accept
+bug-reports:   http://github.com/zimothy/snap-accept/issues
+category:      Web
+copyright:     (c) 2013 Timothy Jones
+build-type:    Simple
+cabal-version: >=1.8
+synopsis:      Adds support for Accept header parsing to the Snap web framework.
+description:
+
+library
+  hs-source-dirs:  src
+  build-depends:
+    base ==4.6.*,
+    case-insensitive ==1.0.*,
+    http-quality ==0.0.1,
+    snap-core ==0.9.*,
+    utf8-string ==0.3.*
+
+source-repository head
+  type:     git
+  location: git://github.com/zimothy/snap-accept.get
+
