@@ -19,10 +19,8 @@ library
   exposed-modules: Snap.Accept
   build-depends:
     base ==4.6.*,
-    case-insensitive ==1.0.*,
     http-quality ==0.0.1,
-    snap-core ==0.9.*,
-    utf8-string ==0.3.*
+    snap-core ==0.9.*
 
 source-repository head
   type:     git

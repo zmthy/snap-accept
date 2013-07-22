@@ -6,30 +6,46 @@ module Snap.Accept
     ) where
 
 ------------------------------------------------------------------------------
-import           Control.Monad ((>=>), liftM)
-import           Data.ByteString.UTF8 (fromString)
-import qualified Data.CaseInsensitive as CI
-import           Network.HTTP.Accept (MediaType, match, parseAccepts)
+import           Control.Monad (join, liftM, (>=>))
+import           Data.Maybe (fromMaybe)
+import           Network.HTTP.Accept (Quality, match, mapMatch, parseAccepts)
+import           Network.HTTP.Accept.MediaType (MediaType, toByteString)
 import           Snap.Core
 
 
 ------------------------------------------------------------------------------
--- | Runs a 'Snap' monad action only if the request's Accept header allows for
--- the given media type.  If accepted, the response's Content-Type header is
+-- | Runs a Snap monad only if the request's Accept header allows for the
+-- given media type.  If accepted, the response's Content-Type header is
 -- automatically filled in.
 accept :: MonadSnap m => MediaType -> m a -> m a
-accept t action = accepts [t] $ const action
+accept mtype action = withAccept (match [mtype]) >>= maybe (run mtype) run
+  where
+    run = flip runWithType action
 
 
 ------------------------------------------------------------------------------
--- | Runs a 'Snap' monad action only if the request's Accept header allows for
--- one of the given media types.  If accepted, the expected type is passed to
--- the given function and the response's Content-Type header is automatically
+-- | Runs a Snap monad only if the request's Accept header allows for one of
+-- the given media types.  If accepted, the expected type is passed to the
+-- given function and the response's Content-Type header is automatically
 -- filled in.
-accepts :: MonadSnap m => [MediaType] -> (MediaType -> m a) -> m a
-accepts []         _ = pass
-accepts ts@(t : _) f = liftM (getHeader $ CI.mk "Accept") getRequest >>=
-    maybe (g t) (maybe pass g . (parseAccepts >=> match ts))
+accepts :: MonadSnap m => [(MediaType, m a)] -> m a
+accepts []   = pass
+accepts dict = withAccept (mapMatch dict') >>= fromMaybe (snd $ head dict')
   where
-    g u = modifyResponse (setContentType . fromString $ show u) >> f u
+    dict' = map (join $ fmap . runWithType . fst) dict
+
+
+------------------------------------------------------------------------------
+-- | Parses the Accept header from the request and, if successful, passes
+-- it to the given function.
+withAccept :: MonadSnap m => ([Quality MediaType] -> Maybe a) -> m (Maybe a)
+withAccept f = liftM (getHeader "Accept" >=> parseAccepts >=> f) getRequest
+
+
+------------------------------------------------------------------------------
+-- | Runs the given Snap monad with the given media type set in the
+-- response's ContentType header.
+runWithType :: MonadSnap m => MediaType -> m a -> m a
+runWithType mtype action =
+    modifyResponse (setContentType $ toByteString mtype) >> action
 
