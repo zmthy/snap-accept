@@ -1,16 +1,15 @@
-{-# LANGUAGE OverloadedStrings #-}
-
+------------------------------------------------------------------------------
 module Snap.Accept
     ( accept
     , accepts
     ) where
 
 ------------------------------------------------------------------------------
-import           Control.Monad (join, liftM, (>=>))
-import           Data.Maybe (fromMaybe)
-import           Network.HTTP.Accept (Quality, match, mapMatch, parseAccepts)
-import           Network.HTTP.Accept.MediaType (MediaType, toByteString)
-import           Snap.Core
+import Control.Monad                 (join, liftM, (>=>))
+import Data.Maybe                    (fromMaybe)
+import Network.HTTP.Accept
+import Network.HTTP.Accept.MediaType (toByteString)
+import Snap.Core
 
 
 ------------------------------------------------------------------------------
@@ -18,7 +17,8 @@ import           Snap.Core
 -- given media type.  If accepted, the response's Content-Type header is
 -- automatically filled in.
 accept :: MonadSnap m => MediaType -> m a -> m a
-accept mtype action = withAccept (match [mtype]) >>= maybe (run mtype) run
+accept mtype action =
+    withAccept (matchAccept [mtype]) >>= maybe (run mtype) run
   where
     run = flip runWithType action
 
@@ -30,7 +30,7 @@ accept mtype action = withAccept (match [mtype]) >>= maybe (run mtype) run
 -- filled in.
 accepts :: MonadSnap m => [(MediaType, m a)] -> m a
 accepts []   = pass
-accepts dict = withAccept (mapMatch dict') >>= fromMaybe (snd $ head dict')
+accepts dict = withAccept (mapAccept dict') >>= fromMaybe (snd $ head dict')
   where
     dict' = map (join $ fmap . runWithType . fst) dict
 
@@ -39,7 +39,7 @@ accepts dict = withAccept (mapMatch dict') >>= fromMaybe (snd $ head dict')
 -- | Parses the Accept header from the request and, if successful, passes
 -- it to the given function.
 withAccept :: MonadSnap m => ([Quality MediaType] -> Maybe a) -> m (Maybe a)
-withAccept f = liftM (getHeader "Accept" >=> parseAccepts >=> f) getRequest
+withAccept f = liftM (getHeader "Accept" >=> parseAccept >=> f) getRequest
 
 
 ------------------------------------------------------------------------------
