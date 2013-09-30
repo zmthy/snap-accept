@@ -5,10 +5,10 @@ module Snap.Accept
     ) where
 
 ------------------------------------------------------------------------------
-import Control.Monad                 (join, liftM, (>=>))
-import Data.Maybe                    (fromMaybe)
-import Network.HTTP.Accept
-import Network.HTTP.Accept.MediaType (toByteString)
+import Control.Monad                (join, (>=>))
+import Data.Maybe                   (fromMaybe)
+import Network.HTTP.Media
+import Network.HTTP.Media.MediaType (toByteString)
 import Snap.Core
 
 
@@ -39,7 +39,7 @@ accepts dict = withAccept (mapAccept dict') >>= fromMaybe (snd $ head dict')
 -- | Parses the Accept header from the request and, if successful, passes
 -- it to the given function.
 withAccept :: MonadSnap m => ([Quality MediaType] -> Maybe a) -> m (Maybe a)
-withAccept f = liftM (getHeader "Accept" >=> parseAccept >=> f) getRequest
+withAccept f = getsRequest $ getHeader "Accept" >=> parseAccept >=> f
 
 
 ------------------------------------------------------------------------------
