@@ -16,6 +16,7 @@ description:
 
 library
   hs-source-dirs:  src
+  exposed-modules: Snap.Accept
   build-depends:
     base ==4.6.*,
     case-insensitive ==1.0.*,
