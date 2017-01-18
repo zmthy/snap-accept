@@ -30,8 +30,9 @@ library
 
   build-depends:
     base       >= 4.6.0 && < 5.0,
-    http-media >= 0.1.0 && < 0.2,
-    snap-core  >= 0.9.4 && < 0.14
+    http-media >= 0.4.0 && < 0.7,
+    snap-core  >= 0.9.4 && < 1.1,
+    bytestring
 
 source-repository head
   type:     git
