@@ -5,11 +5,12 @@ module Snap.Accept
     ) where
 
 ------------------------------------------------------------------------------
-import Control.Monad                (join, (>=>))
-import Data.Maybe                   (fromMaybe)
-import Network.HTTP.Media
-import Network.HTTP.Media.MediaType (toByteString)
-import Snap.Core
+import           Control.Monad                   (join, (>=>))
+import           Data.ByteString                 (ByteString)
+import           Data.Maybe                      (fromMaybe)
+import           Network.HTTP.Media
+import           Network.HTTP.Media.RenderHeader (renderHeader)
+import           Snap.Core
 
 
 ------------------------------------------------------------------------------
@@ -38,8 +39,8 @@ accepts dict = withAccept (mapAccept dict') >>= fromMaybe (snd $ head dict')
 ------------------------------------------------------------------------------
 -- | Parses the Accept header from the request and, if successful, passes
 -- it to the given function.
-withAccept :: MonadSnap m => ([Quality MediaType] -> Maybe a) -> m (Maybe a)
-withAccept f = getsRequest $ getHeader "Accept" >=> parseAccept >=> f
+withAccept :: MonadSnap m => (ByteString -> Maybe a) -> m (Maybe a)
+withAccept f = getsRequest $ getHeader "Accept" >=> f --TODO: when did parsequality show up
 
 
 ------------------------------------------------------------------------------
@@ -47,5 +48,5 @@ withAccept f = getsRequest $ getHeader "Accept" >=> parseAccept >=> f
 -- response's ContentType header.
 runWithType :: MonadSnap m => MediaType -> m a -> m a
 runWithType mtype action =
-    modifyResponse (setContentType $ toByteString mtype) >> action
+    modifyResponse (setContentType $ renderHeader mtype) >> action
 
