@@ -3,8 +3,8 @@ Complete content-type functionality as a complement to Snap's `method` and
 automatically setting the Content-Type header of the response.
 
 ```haskell
-route = accept "text/html" sendHtml
-    <|> accept "application/json" sendJson
-    <|> send406Error
+route = acceptsMedia
+    [ ("text/html", sendHtml)
+    , ("application/json", sendJson)
+    ] <|> send406Error
 ```
-
